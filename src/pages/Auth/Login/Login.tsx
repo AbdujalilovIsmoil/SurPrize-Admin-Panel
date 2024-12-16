@@ -1,30 +1,33 @@
-import * as React from "react";
-import Box from "@mui/material/Box";
+import { get } from "lodash";
+import { usePost } from "hook";
+import { useState } from "react";
 import AppTheme from "./SharedTheme";
-import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
-import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormLabel from "@mui/material/FormLabel";
-import FormControl from "@mui/material/FormControl";
-import Link from "@mui/material/Link";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
-import MuiCard from "@mui/material/Card";
+import type { RootState } from "store";
+import { SitemarkIcon } from "./CustomIcons";
 import { styled } from "@mui/material/styles";
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from "./CustomIcons";
 import ColorModeSelect from "./ColorModeSelect";
+import { useDispatch, useSelector } from "react-redux";
+import { setToken } from "store/registerSlice/registerSlice";
+import {
+  Box,
+  Stack,
+  Button,
+  TextField,
+  FormLabel,
+  Typography,
+  CssBaseline,
+  FormControl,
+  Card as MuiCard,
+} from "@mui/material";
 
 const Card = styled(MuiCard)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignSelf: "center",
   width: "100%",
-  padding: theme.spacing(4),
-  gap: theme.spacing(2),
   margin: "auto",
+  display: "flex",
+  alignSelf: "center",
+  gap: theme.spacing(2),
+  flexDirection: "column",
+  padding: theme.spacing(4),
   boxShadow:
     "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
   [theme.breakpoints.up("sm")]: {
@@ -37,18 +40,18 @@ const Card = styled(MuiCard)(({ theme }) => ({
 }));
 
 const SignUpContainer = styled(Stack)(({ theme }) => ({
-  height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
   minHeight: "100%",
   padding: theme.spacing(2),
+  height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
   [theme.breakpoints.up("sm")]: {
     padding: theme.spacing(4),
   },
   "&::before": {
+    inset: 0,
+    zIndex: -1,
     content: '""',
     display: "block",
     position: "absolute",
-    zIndex: -1,
-    inset: 0,
     backgroundImage:
       "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
     backgroundRepeat: "no-repeat",
@@ -59,63 +62,69 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
-export default function SignUp(props: { disableCustomTheme?: boolean }) {
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
-  const [nameError, setNameError] = React.useState(false);
-  const [nameErrorMessage, setNameErrorMessage] = React.useState("");
+const SignUp = (props: { disableCustomTheme?: boolean }) => {
+  const [passwordError, setPasswordError] = useState<boolean>(false);
+  const [phoneNumberError, setPhoneNumberError] = useState<boolean>(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState<string>("");
+  const [phoneNumberErrorMessage, setPhoneNumberErrorMessage] =
+    useState<string>("");
 
   const validateInputs = () => {
-    const email = document.getElementById("email") as HTMLInputElement;
-    const password = document.getElementById("password") as HTMLInputElement;
-    const name = document.getElementById("name") as HTMLInputElement;
-
     let isValid = true;
 
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
-      setEmailError(true);
-      setEmailErrorMessage("Please enter a valid email address.");
-      isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage("");
-    }
+    const phone = document.getElementById("phone") as HTMLInputElement;
+    const password = document.getElementById("password") as HTMLInputElement;
 
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      setPasswordErrorMessage("Password value is empty, fill it");
       isValid = false;
     } else {
       setPasswordError(false);
       setPasswordErrorMessage("");
     }
 
-    if (!name.value || name.value.length < 1) {
-      setNameError(true);
-      setNameErrorMessage("Name is required.");
+    if (!phone.value || phone.value.length < 6) {
       isValid = false;
+      setPhoneNumberError(true);
+      setPhoneNumberErrorMessage("Phone number value is empty, fill it");
     } else {
-      setNameError(false);
-      setNameErrorMessage("");
+      setPhoneNumberError(false);
+      setPhoneNumberErrorMessage("");
     }
 
     return isValid;
   };
 
+  const state = useSelector((state: RootState) => state.registerSlice.token);
+  const dispatch = useDispatch();
+
+  console.log(state);
+
+  const { mutate } = usePost({
+    method: "post",
+    path: "/api/admin/login",
+    onError: () => {},
+    onSuccess: (data) => {
+      dispatch(setToken(get(data, "data.token", "")));
+    },
+  });
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    if (nameError || emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
+    event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      name: data.get("name"),
-      lastName: data.get("lastName"),
-      email: data.get("email"),
-      password: data.get("password"),
-    });
+
+    interface dataInterface {
+      phone: string | FormDataEntryValue | null;
+      password: string | FormDataEntryValue | null;
+    }
+
+    const postData: dataInterface = {
+      phone: String(data.get("phone")),
+      password: String(data.get("password")),
+    };
+
+    mutate(postData);
   };
 
   return (
@@ -126,11 +135,15 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
         <Card variant="outlined">
           <SitemarkIcon />
           <Typography
-            component="h1"
             variant="h4"
-            sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
+            component="h1"
+            sx={{
+              width: "100%",
+              textAlign: "center",
+              fontSize: "clamp(2rem, 10vw, 2.15rem)",
+            }}
           >
-            Sign up
+            Log In
           </Typography>
           <Box
             component="form"
@@ -138,32 +151,19 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
             <FormControl>
-              <FormLabel htmlFor="name">Full name</FormLabel>
-              <TextField
-                autoComplete="name"
-                name="name"
-                required
-                fullWidth
-                id="name"
-                placeholder="Jon Snow"
-                error={nameError}
-                helperText={nameErrorMessage}
-                color={nameError ? "error" : "primary"}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
+              <FormLabel htmlFor="phone">Phone</FormLabel>
               <TextField
                 required
                 fullWidth
-                id="email"
-                placeholder="your@email.com"
-                name="email"
-                autoComplete="email"
+                id="phone"
+                name="phone"
+                type="tel"
                 variant="outlined"
-                error={emailError}
-                helperText={emailErrorMessage}
-                color={passwordError ? "error" : "primary"}
+                error={phoneNumberError}
+                placeholder="Your phone number"
+                autoComplete="new-phone-number"
+                helperText={phoneNumberErrorMessage}
+                color={phoneNumberError ? "error" : "primary"}
               />
             </FormControl>
             <FormControl>
@@ -171,63 +171,30 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
               <TextField
                 required
                 fullWidth
-                name="password"
-                placeholder="••••••"
-                type="password"
                 id="password"
-                autoComplete="new-password"
+                name="password"
+                type="password"
                 variant="outlined"
+                placeholder="••••••"
                 error={passwordError}
+                autoComplete="new-password"
                 helperText={passwordErrorMessage}
                 color={passwordError ? "error" : "primary"}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="allowExtraEmails" color="primary" />}
-              label="I want to receive updates via email."
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               onClick={validateInputs}
             >
-              Sign up
+              Log In
             </Button>
-          </Box>
-          <Divider>
-            <Typography sx={{ color: "text.secondary" }}>or</Typography>
-          </Divider>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert("Sign up with Google")}
-              startIcon={<GoogleIcon />}
-            >
-              Sign up with Google
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert("Sign up with Facebook")}
-              startIcon={<FacebookIcon />}
-            >
-              Sign up with Facebook
-            </Button>
-            <Typography sx={{ textAlign: "center" }}>
-              Already have an account?{" "}
-              <Link
-                href="/material-ui/getting-started/templates/sign-in/"
-                variant="body2"
-                sx={{ alignSelf: "center" }}
-              >
-                Sign in
-              </Link>
-            </Typography>
           </Box>
         </Card>
       </SignUpContainer>
     </AppTheme>
   );
-}
+};
+
+export default SignUp;

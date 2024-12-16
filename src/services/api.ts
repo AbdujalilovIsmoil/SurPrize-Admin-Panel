@@ -2,7 +2,7 @@ import axios from "axios";
 import storage from "./storage";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: import.meta.env.VITE_REACT_BASE_URL,
 });
 
 api.defaults.timeout = 2500;

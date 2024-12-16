@@ -1,13 +1,31 @@
-import reducers from "./reducers";
-import initialState from "./initialState";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const name: string = "register";
 
+interface initialStateInterface {
+  token: string;
+  data: {
+    name: string;
+    number: string | number;
+  };
+}
+
+const initialState: initialStateInterface = {
+  token: "",
+  data: {
+    name: "",
+    number: "",
+  },
+};
+
 export const registerSlice = createSlice({
   name,
-  reducers,
   initialState,
+  reducers: {
+    setToken: (state: initialStateInterface, action: PayloadAction<string>) => {
+      return { ...state, token: action.payload };
+    },
+  },
 });
 
 export default registerSlice.reducer;

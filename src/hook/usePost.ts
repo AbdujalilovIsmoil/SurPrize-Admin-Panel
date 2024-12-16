@@ -17,7 +17,7 @@ const usePost = ({
   const mutation = useMutation({
     onError: (error) => onError(error),
     onSuccess: (data) => onSuccess(data),
-    mutationFn: (data) => {
+    mutationFn: (data: any) => {
       if (typeof data === "object") {
         return api[method](path, data);
       } else {
