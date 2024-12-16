@@ -1,34 +1,27 @@
 import { useState } from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
-import Drawer from "@mui/material/Drawer";
-import ClassIcon from "@mui/icons-material/Class";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import IconButton from "@mui/material/IconButton";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import MenuIcon from "@mui/icons-material/Menu";
-import { HomeMaxOutlined } from "@mui/icons-material";
-import LocalMallIcon from "@mui/icons-material/LocalMall";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import EventSeatIcon from "@mui/icons-material/EventSeat";
-import Avatar from "@mui/material/Avatar";
-import ProductionQuantityLimitsIcon from "@mui/icons-material/ProductionQuantityLimits";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
-import Tooltip from "@mui/material/Tooltip";
-import CategoryIcon from "@mui/icons-material/Category";
-import AddBoxIcon from "@mui/icons-material/AddBox";
-import PersonAdd from "@mui/icons-material/PersonAdd";
-import Settings from "@mui/icons-material/Settings";
-import Logout from "@mui/icons-material/Logout";
-import { useLocation, useNavigate } from "react-router-dom";
+import navigations from "./navigations";
+import { navigationsInterface } from "types";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Logout, Settings, PersonAdd, MenuOutlined } from "@mui/icons-material";
+
+import {
+  Box,
+  Menu,
+  List,
+  Avatar,
+  AppBar,
+  Drawer,
+  Tooltip,
+  Divider,
+  Toolbar,
+  MenuItem,
+  Typography,
+  IconButton,
+  CssBaseline,
+  ListItemText,
+  ListItemIcon,
+  ListItemButton,
+} from "@mui/material";
 
 const drawerWidth = 240;
 
@@ -36,88 +29,36 @@ interface Props {
   window?: () => Window;
 }
 
-export default function ResponsiveDrawer(props: Props) {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+const ResponsiveDrawer = (props: Props) => {
   const { window } = props;
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const navigate = useNavigate();
+
+  const { pathname } = useLocation();
+
+  const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+
+  const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
   const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
+
+  const handleClose = (path: string) => {
+    switch (path) {
+      case "login":
+        navigate(`/pages/auth/${path}`);
+        return;
+
+      default:
+        setAnchorEl(null);
+    }
     setAnchorEl(null);
   };
 
-  interface navigationsInterface {
-    id: number;
-    path: string;
-    title: string;
-    icon: React.ReactNode;
-  }
-
-  const navigations: navigationsInterface[] = [
-    {
-      id: 1,
-      path: "/",
-      title: "Home",
-      icon: <HomeMaxOutlined />,
-    },
-    {
-      id: 2,
-      title: "Banner",
-      path: "/pages/banner",
-      icon: <ViewCarouselIcon />,
-    },
-    {
-      id: 3,
-      title: "Box",
-      path: "/pages/box",
-      icon: <AddBoxIcon />,
-    },
-    {
-      id: 4,
-      title: "Category",
-      path: "/pages/category",
-      icon: <CategoryIcon />,
-    },
-    {
-      id: 5,
-      title: "Sub category",
-      path: "/pages/sub-category",
-      icon: <ClassIcon />,
-    },
-    {
-      id: 6,
-      title: "Order",
-      path: "/pages/order",
-      icon: <ProductionQuantityLimitsIcon />,
-    },
-    {
-      id: 7,
-      title: "Product",
-      path: "/pages/product",
-      icon: <LocalMallIcon />,
-    },
-    {
-      id: 8,
-      title: "Sections",
-      path: "/pages/sections",
-      icon: <EventSeatIcon />,
-    },
-    {
-      id: 9,
-      title: "Store",
-      path: "/pages/store",
-      icon: <StorefrontIcon />,
-    },
-  ];
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
 
   const drawer = (
     <div>
@@ -164,7 +105,7 @@ export default function ResponsiveDrawer(props: Props) {
             onClick={handleDrawerToggle}
             sx={{ ml: 0, display: { md: "none" } }}
           >
-            <MenuIcon />
+            <MenuOutlined />
           </IconButton>
           <Box className="flex justify-between items-center w-[100%]">
             <Typography variant="h6" noWrap component="div">
@@ -174,18 +115,18 @@ export default function ResponsiveDrawer(props: Props) {
               <Box
                 sx={{
                   display: "flex",
-                  alignItems: "center",
                   textAlign: "center",
+                  alignItems: "center",
                 }}
               >
                 <Tooltip title="Account settings">
                   <IconButton
-                    onClick={handleClick}
                     size="small"
                     sx={{ ml: 2 }}
-                    aria-controls={open ? "account-menu" : undefined}
                     aria-haspopup="true"
+                    onClick={handleClick}
                     aria-expanded={open ? "true" : undefined}
+                    aria-controls={open ? "account-menu" : undefined}
                   >
                     <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
                   </IconButton>
@@ -196,7 +137,7 @@ export default function ResponsiveDrawer(props: Props) {
                 id="account-menu"
                 open={open}
                 onClose={handleClose}
-                onClick={handleClose}
+                onClick={() => handleClose("")}
                 slotProps={{
                   paper: {
                     elevation: 0,
@@ -228,26 +169,26 @@ export default function ResponsiveDrawer(props: Props) {
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
               >
-                <MenuItem onClick={handleClose}>
+                <MenuItem>
                   <Avatar /> Profile
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
+                <MenuItem>
                   <Avatar /> My account
                 </MenuItem>
                 <Divider />
-                <MenuItem onClick={handleClose}>
+                <MenuItem>
                   <ListItemIcon>
                     <PersonAdd fontSize="small" />
                   </ListItemIcon>
                   Add another account
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
+                <MenuItem>
                   <ListItemIcon>
                     <Settings fontSize="small" />
                   </ListItemIcon>
                   Settings
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={() => handleClose("login")}>
                   <ListItemIcon>
                     <Logout fontSize="small" />
                   </ListItemIcon>
@@ -260,8 +201,8 @@ export default function ResponsiveDrawer(props: Props) {
       </AppBar>
       <Box
         component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
         aria-label="mailbox folders"
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
       >
         <Drawer
           container={container}
@@ -269,7 +210,7 @@ export default function ResponsiveDrawer(props: Props) {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             display: { xs: "block", sm: "block", md: "none" },
@@ -304,7 +245,10 @@ export default function ResponsiveDrawer(props: Props) {
         }}
       >
         <Toolbar />
+        <Outlet />
       </Box>
     </Box>
   );
-}
+};
+
+export default ResponsiveDrawer;
