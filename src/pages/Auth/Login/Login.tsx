@@ -1,13 +1,13 @@
 import { get } from "lodash";
 import { usePost } from "hook";
 import { useState } from "react";
+import { storage } from "services";
 import AppTheme from "./SharedTheme";
-import type { RootState } from "store";
+import { toast } from "react-toastify";
 import { SitemarkIcon } from "./CustomIcons";
 import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 import ColorModeSelect from "./ColorModeSelect";
-import { useDispatch, useSelector } from "react-redux";
-import { setToken } from "store/registerSlice/registerSlice";
 import {
   Box,
   Stack,
@@ -63,6 +63,7 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 const SignUp = (props: { disableCustomTheme?: boolean }) => {
+  const navigate = useNavigate();
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [phoneNumberError, setPhoneNumberError] = useState<boolean>(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState<string>("");
@@ -96,17 +97,22 @@ const SignUp = (props: { disableCustomTheme?: boolean }) => {
     return isValid;
   };
 
-  const state = useSelector((state: RootState) => state.registerSlice.token);
-  const dispatch = useDispatch();
-
-  console.log(state);
-
   const { mutate } = usePost({
     method: "post",
     path: "/api/admin/login",
-    onError: () => {},
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error("Xatolik! Tizimga kira olmadingiz.");
+      }
+    },
     onSuccess: (data) => {
-      dispatch(setToken(get(data, "data.token", "")));
+      toast.success("Tizimga muvvaffaqiyatli kirdingiz");
+
+      storage.set("token", get(data, "data.token", ""));
+
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
     },
   });
 
